@@ -1,5 +1,9 @@
 # Tracker firmware for SlimeNRF
 
+For custom board "femtoRF" using BC832 and LSM6DSV16B
+
+shit aint workin right now but might as well upload
+
 ## License
 Unless otherwise specified, all code in this repository is dual-licensed under either:
 
