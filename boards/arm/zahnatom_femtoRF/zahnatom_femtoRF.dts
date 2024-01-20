@@ -38,14 +38,14 @@
 
 	pwm0_default: pwm0_default {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 20)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 25)>;
 			nordic,invert;
 		};
 	};
 
 	pwm0_sleep: pwm0_sleep {
 		group1 {
-			psels = <NRF_PSEL(PWM_OUT0, 0, 20)>;
+			psels = <NRF_PSEL(PWM_OUT0, 0, 25)>;
 			low-power-enable;
 		};
 	};
@@ -66,7 +66,7 @@
 	pwmleds {
 		compatible = "pwm-leds";
 		pwm_led0: pwm_led_0 {
-			pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
+			pwms = <&pwm0 1 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
 		};
 	};
 
@@ -76,7 +76,7 @@
 		io-channels = <&adc 0>;
 		output-ohms = <510000>;
 		full-ohms = <(1000000+510000)>;
-		power-gpios = <&gpio0 3 (GPIO_OPEN_DRAIN|GPIO_ACTIVE_LOW)>;
+		power-gpios = <&gpio0 29 (GPIO_OPEN_DRAIN|GPIO_ACTIVE_LOW)>;
 	};
 
 	zephyr,user {

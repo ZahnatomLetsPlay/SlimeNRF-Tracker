@@ -144,10 +144,11 @@ static bool battery_ok;
 
 static int battery_setup(const struct device *arg)
 {
+	printf("bruh\n");
 	int rc = divider_setup();
 
 	battery_ok = (rc == 0);
-	LOG_INF("Battery setup: %d %d", rc, battery_ok);
+	printf("Battery setup: %d %d", rc, battery_ok);
 	return rc;
 }
 
