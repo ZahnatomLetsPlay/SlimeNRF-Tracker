@@ -32,7 +32,8 @@ LOG_MODULE_REGISTER(BATTERY, CONFIG_ADC_LOG_LEVEL);
 /* Other boards may use dividers that only reduce battery voltage to
  * the maximum supported by the hardware (3.6 V)
  */
-#define BATTERY_ADC_GAIN ADC_GAIN_1_6
+// #define BATTERY_ADC_GAIN ADC_GAIN_1_6
+#define BATTERY_ADC_GAIN 1
 #endif
 
 struct io_channel_config {
@@ -135,7 +136,7 @@ static int divider_setup(void)
 #endif /* CONFIG_ADC_var */
 
 	rc = adc_channel_setup(ddp->adc, accp);
-	LOG_INF("Setup AIN%u got %d", iocp->channel, rc);
+	printf("Setup AIN%u got %d\n", iocp->channel, rc);
 
 	return rc;
 }
@@ -148,7 +149,7 @@ static int battery_setup(const struct device *arg)
 	int rc = divider_setup();
 
 	battery_ok = (rc == 0);
-	printf("Battery setup: %d %d", rc, battery_ok);
+	printf("Battery setup: %d %d\n", rc, battery_ok);
 	return rc;
 }
 
@@ -270,7 +271,6 @@ unsigned int read_batt_mV(int *out)
 	}
 
 	int batt_mV = battery_sample();
-
 	if (batt_mV < 0) {
 		printk("Failed to read battery voltage: %d\n",
 		       batt_mV);

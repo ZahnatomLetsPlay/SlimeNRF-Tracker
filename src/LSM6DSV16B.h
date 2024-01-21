@@ -31,7 +31,7 @@ void sflp2q(float quat[4], uint16_t sflp[3]);
 #define WHOAMI 0x0F
 #define LSMID 0x71
 
-#define LSMRESET 0b00000001
+#define LSMRESET 0b00000100
 #define LSMCLEAR 0b00000001
 #define EMBED 0b10000000
 
@@ -67,7 +67,9 @@ void sflp2q(float quat[4], uint16_t sflp[3]);
 #define EMBEDINITA_DATA 0b00000010
 
 #define LSMIFCONF 0x03
-#define LSMINTSETUP 0b0001100
+#define LSMINTSETUP 0b01000100 // this is that way to set the voltage on the bq21080 to 4.18 volts. not the 4.2 volts i'd want but its ok
+
+
 
 #define WAKESRCCONF 0x45
 #define WAKESRCCONF_DATA 0b00000111

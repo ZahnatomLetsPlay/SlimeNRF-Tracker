@@ -74,15 +74,15 @@
 		compatible = "voltage-divider";
 		status = "okay";
 		io-channels = <&adc 0>;
-		output-ohms = <510000>;
-		full-ohms = <(1000000+510000)>;
+		output-ohms = <619000>;
+		full-ohms = <(820000+619000)>;
 		power-gpios = <&gpio0 29 (GPIO_OPEN_DRAIN|GPIO_ACTIVE_LOW)>;
 	};
 
 	zephyr,user {
 		dock-gpios = <&gpio0 0 (GPIO_PULL_UP|GPIO_ACTIVE_LOW)>;
 		chgstat-gpios = <&gpio0 1 (GPIO_PULL_UP|GPIO_ACTIVE_LOW)>;
-		int0-gpios = <&gpio0 18 (GPIO_PULL_UP|GPIO_ACTIVE_LOW)>;
+		int0-gpios = <&gpio0 18 (GPIO_PULL_DOWN|GPIO_ACTIVE_HIGH)>;
 		int1-gpios = <&gpio0 13 (GPIO_PULL_UP|GPIO_ACTIVE_LOW)>;
 		led-gpios = <&gpio0 20 (GPIO_OPEN_DRAIN|GPIO_ACTIVE_LOW)>;
 	};

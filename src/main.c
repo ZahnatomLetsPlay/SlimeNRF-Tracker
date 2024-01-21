@@ -74,7 +74,7 @@ static struct esb_payload tx_payload_pair = ESB_CREATE_PAYLOAD(0,
 
 #define ZEPHYR_USER_NODE DT_PATH(zephyr_user)
 
-#define LED0_NODE DT_NODELABEL(pwm_led0)
+// #define LED0_NODE DT_NODELABEL(pwm_led0)
 
 #define MAIN_IMU_NODE DT_NODELABEL(icm_0)
 #define MAIN_MAG_NODE DT_NODELABEL(mmc_0)
@@ -100,8 +100,8 @@ bool batt_low = false;
 const struct i2c_dt_spec main_imu = I2C_DT_SPEC_GET(MAIN_IMU_NODE);
 const struct i2c_dt_spec main_mag = I2C_DT_SPEC_GET(MAIN_MAG_NODE);
 
-const struct pwm_dt_spec led0 = PWM_DT_SPEC_GET(LED0_NODE);
-const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, led_gpios);
+// const struct pwm_dt_spec led0 = PWM_DT_SPEC_GET(LED0_NODE);
+// const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, led_gpios);
 
 const struct gpio_dt_spec dock = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, dock_gpios);
 //const struct gpio_dt_spec chgstat = GPIO_DT_SPEC_GET(ZEPHYR_USER_NODE, chgstat_gpios);
@@ -118,7 +118,7 @@ bool main_ok = false;
 
 bool main_data = false;
 
-#define MAG_ENABLED true
+#define MAG_ENABLED false
 
 #define INT16_TO_UINT16(x) ((uint16_t)32768 + (uint16_t)(x))
 #define TO_FIXED_14(x) ((int16_t)((x) * (1 << 14)))
@@ -130,6 +130,7 @@ bool main_data = false;
 
 #include "ICM42688.h"
 #include "MMC5983MA.h"
+#include "LSM6DSV16B.h"
 
 float lin_ax, lin_ay, lin_az;					// linear acceleration (acceleration with gravity component subtracted)
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};			// vector to hold quaternion
@@ -557,7 +558,7 @@ bool wait_for_motion(const struct i2c_dt_spec imu, bool motion, int samples) {
 	float a[3], last_a[3];
 	icm_accel_read(imu, last_a);
 	for (int i = 0; i < samples + counts; i++) {
-gpio_pin_toggle_dt(&led); // scuffed led
+// gpio_pin_toggle_dt(&led); // scuffed led
 		LOG_INF("Accel: %.5f %.5f %.5f", a[0], a[1], a[2]);
 		k_msleep(500);
 		icm_accel_read(imu, a);
@@ -634,7 +635,7 @@ void main_imu_thread(void) {
 					last_magCal = new_magCal;
 				}
 				if (magCal == 0b111111) {
-					gpio_pin_set_dt(&led, 1);
+					// gpio_pin_set_dt(&led, 1);
 				}
 			}
 
@@ -839,14 +840,14 @@ void main_imu_thread(void) {
 				do {
 				if (reset_mode == 1) { // Reset mode main calibration
 					LOG_INF("Enter main calibration");
-gpio_pin_set_dt(&led, 0); // scuffed led
+// gpio_pin_set_dt(&led, 0); // scuffed led
 					// TODO: Add LED flashies
 					LOG_INF("Rest the device on a stable surface");
 					if (!wait_for_motion(main_imu, false, 20)) { // Wait for accelerometer to settle, timeout 10s
-gpio_pin_set_dt(&led, 0); // scuffed led
+// gpio_pin_set_dt(&led, 0); // scuffed led
 						break; // Timeout, calibration failed
 					}
-gpio_pin_set_dt(&led, 1); // scuffed led
+// gpio_pin_set_dt(&led, 1); // scuffed led
 					k_msleep(500); // Delay before beginning acquisition
 					LOG_INF("Start accel and gyro calibration");
 					icm_offsetBias(main_imu, accelBias, gyroBias); // This takes about 3s
@@ -868,7 +869,7 @@ gpio_pin_set_dt(&led, 1); // scuffed led
 						retained.gOff[i] = gOff[i];
 					}
 					retained_update();
-gpio_pin_set_dt(&led, 0); // scuffed led
+// gpio_pin_set_dt(&led, 0); // scuffed led
 					reset_mode = 0; // Clear reset mode
 				}
 				} while (false);
@@ -916,13 +917,26 @@ void power_check(void) {
 	int batt_mV;
 	uint32_t batt_pptt = read_batt_mV(&batt_mV);
 	if (batt_pptt == 0 && !docked) {
-		gpio_pin_set_dt(&led, 0); // Turn off LED
+		// gpio_pin_set_dt(&led, 0); // Turn off LED
 		configure_system_off_chgstat();
+		printf("Going sleep, low battery\n");
+		printf("   .         .\n");
+		printf("  /|________/|\n");
+		printf(" // /      //|\n");
+		printf("|/_/______|//!\n");
+		printf("|_________|/\n");
+		printf("!         !");
 	} else if (docked) {
-		gpio_pin_set_dt(&led, 0); // Turn off LED
+		// gpio_pin_set_dt(&led, 0); // Turn off LED
 		configure_system_off_dock(); // usually charging, i would flash LED but that will drain the battery while it is charging..
 	}
 	LOG_INF("Battery %u%% (%dmV)", batt_pptt/100, batt_mV);
+}
+
+void debug();
+int dbgnumlmao=0;
+void debug(){
+	printf("%d\n", dbgnumlmao++);
 }
 
 int main(void)
@@ -932,14 +946,18 @@ int main(void)
 	uint8_t reboot_counter = 0;
 
 	gpio_pin_configure_dt(&dock, GPIO_INPUT);
-	gpio_pin_configure_dt(&led, GPIO_OUTPUT);
+	// gpio_pin_configure_dt(&led, GPIO_OUTPUT);
 
 	power_check(); // check the battery and dock first before continuing (4ms delta to read from ADC)
-
+	printf("power^^\n");
 	start_time = k_uptime_get(); // Need to get start time for imu startup delta
-	gpio_pin_set_dt(&led, 1); // Boot LED
+	// gpio_pin_set_dt(&led, 1); // Boot LED
 
 	bool ram_retention = retained_validate(); // check ram retention
+	
+	printf("%#2x\n", readByte(&main_imu, 0x0C));
+
+	// debug();
 
 	if (reset_reason & 0x01) { // Count pin resets
 		//nvs_read(&fs, RBT_CNT_ID, &reboot_counter, sizeof(reboot_counter));
@@ -965,6 +983,8 @@ int main(void)
 	fs.sector_size = info.size; // Sector size equal to page size
 	fs.sector_count = 4U; // 4 sectors
 // 5-6ms delta to initialize NVS (only done when needed)
+	
+	// debug();
 
 	// All contents of NVS was stored in RAM to not need initializing NVS often
 	if (!ram_retention) { 
@@ -981,10 +1001,12 @@ int main(void)
 	} else {
 		LOG_INF("Recovered calibration from RAM");
 	}
+	
+	// debug();
 
 	memcpy(paired_addr, retained.paired_addr, sizeof(paired_addr));
 
-	gpio_pin_set_dt(&led, 0);
+	// gpio_pin_set_dt(&led, 0);
 
 // TODO: if reset counter is 0 but reset reason was 1 then perform imu scanning (pressed reset once)
 
@@ -1003,10 +1025,15 @@ int main(void)
 		//nvs_read(&fs, PAIRED_ID, &paired_addr, sizeof(paired_addr));
 		memcpy(paired_addr, retained.paired_addr, sizeof(paired_addr));
 	}
+	
+	// debug();
 
-	clocks_start();
+	// clocks_start();
+	
+	// debug();
 
 	if (paired_addr[0] == 0x00) { // No dongle paired
+		LOG_INF("Pairing mode, nothing paired");
 		for (int i = 0; i < 4; i++) {
 			base_addr_0[i] = discovery_base_addr_0[i];
 			base_addr_1[i] = discovery_base_addr_1[i];
@@ -1034,9 +1061,9 @@ int main(void)
 			esb_flush_tx();
 			esb_write_payload(&tx_payload_pair); // Still fails after a while
 			esb_start_tx();
-			gpio_pin_set_dt(&led, 1);
+			// gpio_pin_set_dt(&led, 1);
 			k_msleep(100);
-			gpio_pin_set_dt(&led, 0);
+			// gpio_pin_set_dt(&led, 0);
 			k_msleep(900);
 			power_check();
 		}
@@ -1141,7 +1168,7 @@ int main(void)
 			i2c_reg_write_byte_dt(&main_imu, ICM42688_DEVICE_CONFIG, 0x01); // Don't need to wait for ICM to finish reset
 			i2c_reg_write_byte_dt(&main_mag, MMC5983MA_CONTROL_1, 0x80); // Don't need to wait for MMC to finish reset
 			// Turn off LED
-			gpio_pin_set_dt(&led, 0);
+			// gpio_pin_set_dt(&led, 0);
 			configure_system_off_chgstat();
 		}
 		last_batt_pptt[last_batt_pptt_i] = batt_pptt;
@@ -1170,15 +1197,15 @@ int main(void)
 
 		if (batt_pptt < 1000 || batt_low) { // Under 10% battery left
 			batt_low = true;
-			pwm_set_pulse_dt(&led0, led_time2 % 600 > 300 ? PWM_MSEC(10) : 0); // 10/20 = 50%
+			// pwm_set_pulse_dt(&led0, led_time2 % 600 > 300 ? PWM_MSEC(10) : 0); // 10/20 = 50%
 			//gpio_pin_set_dt(&led, led_time2 % 600 > 300 ? 1 : 0);
 		} else if (led_time2 < 1000) { // funny led sync
 			led_time_off = time_begin + 300;
 		} else if (time_begin > led_time_off) {
-			pwm_set_pulse_dt(&led0, 0);
+			// pwm_set_pulse_dt(&led0, 0);
 			//gpio_pin_set_dt(&led, 0);
 		} else {
-			pwm_set_pulse_dt(&led0, PWM_MSEC(20)); // 20/20 = 100% - this is pretty bright lol
+			// pwm_set_pulse_dt(&led0, PWM_MSEC(20)); // 20/20 = 100% - this is pretty bright lol
 			//gpio_pin_set_dt(&led, 1);
 		}
 
@@ -1191,7 +1218,7 @@ int main(void)
 			i2c_reg_write_byte_dt(&main_imu, ICM42688_DEVICE_CONFIG, 0x01); // Don't need to wait for ICM to finish reset
 			i2c_reg_write_byte_dt(&main_mag, MMC5983MA_CONTROL_1, 0x80); // Don't need to wait for MMC to finish reset
 			// Turn off LED
-			gpio_pin_set_dt(&led, 0);
+			// gpio_pin_set_dt(&led, 0);
 			configure_system_off_dock();
 		}
 
@@ -1203,7 +1230,7 @@ int main(void)
 			icm_reset(main_imu);
 			i2c_reg_write_byte_dt(&main_mag, MMC5983MA_CONTROL_1, 0x80); // Don't need to wait for MMC to finish reset
 			// Turn off LED
-			gpio_pin_set_dt(&led, 0);
+			// gpio_pin_set_dt(&led, 0);
 			configure_system_off_WOM(main_imu);
 		}
 
