@@ -263,7 +263,7 @@ int clocks_start(void)
 	clk_mgr = z_nrf_clock_control_get_onoff(CLOCK_CONTROL_NRF_SUBSYS_HF);
 	if (!clk_mgr)
 	{
-		// LOG_ERR("Unable to get the Clock manager");
+		printf("Unable to get the Clock manager\n");
 		return -ENXIO;
 	}
 
@@ -272,7 +272,7 @@ int clocks_start(void)
 	err = onoff_request(clk_mgr, &clk_cli);
 	if (err < 0)
 	{
-		// LOG_ERR("Clock request failed: %d", err);
+		printf("Clock request failed: %d\n", err);
 		return err;
 	}
 
@@ -281,12 +281,12 @@ int clocks_start(void)
 		err = sys_notify_fetch_result(&clk_cli.notify, &res);
 		if (!err && res)
 		{
-			// LOG_ERR("Clock could not be started: %d", res);
+			printf("Clock could not be started: %d\n", res);
 			return res;
 		}
 	} while (err);
 
-	// LOG_DBG("HF clock started");
+	printf("HF clock started\n");
 	return 0;
 }
 
@@ -913,19 +913,20 @@ void wait_for_threads(void) {
 }
 
 void power_check(void) {
+	return;
 	bool docked = gpio_pin_get_dt(&dock);
 	int batt_mV;
 	uint32_t batt_pptt = read_batt_mV(&batt_mV);
 	if (batt_pptt == 0 && !docked) {
 		// gpio_pin_set_dt(&led, 0); // Turn off LED
-		configure_system_off_chgstat();
 		printf("Going sleep, low battery\n");
 		printf("   .         .\n");
 		printf("  /|________/|\n");
 		printf(" // /      //|\n");
 		printf("|/_/______|//!\n");
 		printf("|_________|/\n");
-		printf("!         !");
+		printf("!         !\n");
+		configure_system_off_chgstat();
 	} else if (docked) {
 		// gpio_pin_set_dt(&led, 0); // Turn off LED
 		configure_system_off_dock(); // usually charging, i would flash LED but that will drain the battery while it is charging..
@@ -947,6 +948,7 @@ int main(void)
 
 	gpio_pin_configure_dt(&dock, GPIO_INPUT);
 	// gpio_pin_configure_dt(&led, GPIO_OUTPUT);
+	// printf("read: %#02x\n", readByte(&main_imu, 0xFF));
 
 	power_check(); // check the battery and dock first before continuing (4ms delta to read from ADC)
 	printf("power^^\n");
@@ -955,7 +957,6 @@ int main(void)
 
 	bool ram_retention = retained_validate(); // check ram retention
 	
-	printf("%#2x\n", readByte(&main_imu, 0x0C));
 
 	// debug();
 
@@ -1028,7 +1029,7 @@ int main(void)
 	
 	// debug();
 
-	// clocks_start();
+	clocks_start();
 	
 	// debug();
 
